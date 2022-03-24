@@ -1,84 +1,89 @@
 package main
 
 import (
-	"database/sql"
+	"context"
+	"encoding/json"
+	"fmt"
 	"log"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	uuid "github.com/jackc/pgtype/ext/gofrs-uuid"
 
-	"github.com/graphql-go/graphql"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type User struct {
-	ID           uint
-	Name         string
-	Email        *string
-	Age          uint8
-	Birthday     *time.Time
-	MemberNumber sql.NullString
-	ActivatedAt  sql.NullTime
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
-type Book struct {
-	ID         uuid.UUID `db:"id" json:"id" validate:"required,uuid"`
-	CreatedAt  time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
-	UserID     uuid.UUID `db:"user_id" json:"user_id" validate:"required,uuid"`
-	Title      string    `db:"title" json:"title" validate:"required,lte=255"`
-	Author     string    `db:"author" json:"author" validate:"required,lte=255"`
-	BookStatus int       `db:"book_status" json:"book_status" validate:"required,len=1"`
-}
-
-func Query(queryString string) *graphql.Result {
-	fields := graphql.Fields{
-		"test": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return "test successful", nil
-			},
-		},
-	}
-
-	objectConfig := graphql.ObjectConfig{Name: "haexr_schema_object", Fields: fields}
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(objectConfig)}
-	schema, err := graphql.NewSchema(schemaConfig)
-
-	if err == nil {
-		query := queryString
-		params := graphql.Params{Schema: schema, RequestString: query}
-		response := graphql.Do(params)
-		if !response.HasErrors() {
-			return response
-		}
-	}
-	return nil
-}
+const connectionString = "mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false"
+const currentDB = "haexrdb"
 
 func main() {
+	var ServerOK = false
+	log.Print("> Starting the Haexr Servers...")
+	server := fiber.New()
+	log.Print("> Server Loaded")
 
-	dsn := "host=localhost user=postgres password=2000 dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err == nil {
-		log.Printf(db.Name())
+	log.Print("> Connecting to Databases...")
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(connectionString))
+	if err != nil {
+		log.Print("> Connection Failed")
+	}
+	defer func() {
+		if err = client.Disconnect(context.TODO()); err != nil {
+			log.Print("> Connection attempt failed, Disconnecting.")
+		}
+	}()
+
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		log.Print("> Cannot Ping")
+	} else {
+		ServerOK = true
 	}
 
-	db.AutoMigrate(&Book{})
-	db.AutoMigrate(&User{})
+	if ServerOK {
+		fmt.Println("Successfully connected and pinged.")
+	}
 
-	app := fiber.New()
-	app.Use(cors.New())
+	// API
 
-	app.Get("/query", func(c *fiber.Ctx) error {
-		return c.JSON(Query("{test}"))
+	// Root API
+	server.Get("/", func(c *fiber.Ctx) error {
+		if ServerOK {
+			return c.Render("./index.html", nil, "")
+		}
+		return c.SendString("System not OK ...")
 	})
 
-	log.Fatal(app.Listen(":4000"))
+	type user struct {
+		Name string
+		Age  string
+	}
+
+	// User SignUp API
+	server.Post("/signup/:apikey", func(c *fiber.Ctx) error {
+		res := user{}
+		json.Unmarshal(c.Body(), &res)
+		log.Printf(res.Age)
+		log.Printf(res.Name)
+		return c.Send(c.Body())
+	})
+
+	// SignUpUser(client.Database(currentDB), bson.D{{"name", "ahmed"}})
+	server.Listen(":3000")
+}
+
+func SignUpUser(db *mongo.Database, user bson.D) {
+	_, err := db.Collection("PersonalDetails").InsertOne(
+		context.TODO(), user,
+	)
+	if err != nil {
+		log.Printf(err.Error())
+	} else {
+		log.Printf("Success")
+	}
+}
+
+type PersonalDetails struct {
+	name string
+	age  string
 }
