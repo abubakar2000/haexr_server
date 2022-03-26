@@ -48,7 +48,7 @@ type GameInformationOfUser struct {
 type Game struct {
 	GameID       string
 	GameName     string
-	GameTeamType string
+	GameTeamType []string
 	GameLogo     string
 }
 
