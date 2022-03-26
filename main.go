@@ -54,17 +54,10 @@ func main() {
 		return c.SendString("System not OK ...")
 	})
 
-	type user struct {
-		Name string
-		Age  string
-	}
-
 	// User SignUp API
 	server.Post("/signup/:apikey", func(c *fiber.Ctx) error {
-		res := user{}
+		res := Users{}
 		json.Unmarshal(c.Body(), &res)
-		log.Printf(res.Age)
-		log.Printf(res.Name)
 		return c.Send(c.Body())
 	})
 
