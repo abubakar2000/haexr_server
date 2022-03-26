@@ -1,0 +1,19 @@
+{
+    "User_uuid": "string",
+    "Email": "string",
+    "Password": "string",
+    "Fname": "string",
+    "Lname": "string",
+    "Telephone": "string",
+    "Address": "string",
+    "Country": "string",
+    "ProfileImage": "string",
+    "PreferredGames": [],
+    "UserWallet": {
+      "Wallet_id": "string",
+      "Deposit_cash": 0,
+      "Winning_cash": 0,
+      "Bonus_cash": 0
+    },
+    "UsersGamesInformation": []
+  }

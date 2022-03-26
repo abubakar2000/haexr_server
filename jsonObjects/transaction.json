@@ -1,0 +1,6 @@
+{
+    "Transaction_id": "string",
+    "Wallet_id": "string",
+    "Source": "string",
+    "Timestamp": "string"
+}

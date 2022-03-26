@@ -1,0 +1,6 @@
+{
+    "TeamID": "string",
+    "TeamName": "string",
+    "GameID": "string",
+    "UsersInTeam": []
+}

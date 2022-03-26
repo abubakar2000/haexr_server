@@ -1,0 +1,7 @@
+{
+    "GameID": "string",
+    "Total_time": "string",
+    "IGN": "string",
+    "ID": "string",
+    "TeamId": "string"
+}

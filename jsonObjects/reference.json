@@ -1,0 +1,6 @@
+{
+    "Refer_id": "string",
+    "Produce_user_uuid": "string",
+    "Validity": "string",
+    "Timestamp": "string"
+}
