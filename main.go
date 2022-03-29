@@ -5,75 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/qinains/fastergoding"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-
-	"github.com/qinains/fastergoding"
 )
-
-type User struct {
-	User_uuid             string
-	Email                 string
-	Password              string
-	Fname                 string
-	Lname                 string
-	Telephone             string
-	Address               string
-	Country               string
-	ProfileImage          string
-	PreferredGames        []Game
-	UserWallet            Wallet
-	UsersGamesInformation []GameInformationOfUser
-}
-
-type Team struct {
-	TeamID      string
-	TeamName    string
-	GameID      string
-	UsersInTeam []string
-}
-
-type GameInformationOfUser struct {
-	GameID     string
-	Total_time string
-	IGN        string // in game name
-	ID         string // in game id
-	TeamId     string // which game
-}
-
-type Game struct {
-	GameID       string
-	GameName     string
-	GameTeamType []string
-	GameLogo     string
-}
-
-// Composed in the user
-type Wallet struct {
-	Wallet_id    string
-	Deposit_cash int
-	Winning_cash int
-	Bonus_cash   int
-}
-
-type Transaction struct {
-	Transaction_id string
-	Wallet_id      string
-	Source         string
-	Timestamp      string
-}
-
-type Refer struct {
-	Refer_id          string
-	Produce_user_uuid string // who generated this reference
-	Validity          string
-	Timestamp         string
-}
 
 const connectionString = "mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false"
 const currentDB = "haexrdb"
@@ -85,6 +26,14 @@ func main() {
 	var ServerOK = false
 	log.Print("> Starting the Haexr Servers...")
 	server := fiber.New()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		_ = <-c
+		fmt.Println("\nShutdown Command in progress...")
+		_ = server.Shutdown()
+	}()
 
 	log.Print("> Server Loaded")
 
@@ -122,12 +71,22 @@ func main() {
 	// User SignUp API
 	server.Post("/register", func(c *fiber.Ctx) error {
 		userData := &User{}
-		json.Unmarshal(c.Body(), userData)
-		if SignUpUser(client.Database(currentDB), userData) {
-			return c.SendStatus(Success)
+		json.Unmarshal(c.Body(), &userData)
+		if c.Query("code") != "" {
+			// ?code=REFERCODE
+			if SignUpWithCode(client.Database(currentDB), userData, c.Query("code")) {
+				return c.SendStatus(Success)
+			}
+			return c.SendStatus(NotAcceptable)
+		} else {
+			if SignUpUser(client.Database(currentDB), userData) {
+				return c.SendStatus(Success)
+			}
+			return c.SendStatus(NotAcceptable)
 		}
-		return c.SendStatus(NotAcceptable)
+
 	})
+
 	// User unregister API
 	server.Post("/unregister", func(c *fiber.Ctx) error {
 		userData := &User{}
@@ -184,10 +143,20 @@ func main() {
 	})
 
 	// Add Team Member
-	server.Post("/addteammember/:teamid", func(c *fiber.Ctx) error {
+	server.Post("/addteammember", func(c *fiber.Ctx) error {
 		newMemberData := &User{}
 		json.Unmarshal(c.Body(), newMemberData)
-		if AddTeamMember(client.Database(currentDB), newMemberData, c.Params("teamid")) {
+		if AddTeamMember(client.Database(currentDB), newMemberData, c.Query("teamid")) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+
+	// remove teammember
+	server.Post("/delteammember", func(c *fiber.Ctx) error {
+		newMemberData := &User{}
+		json.Unmarshal(c.Body(), newMemberData)
+		if DelTeamMember(client.Database(currentDB), newMemberData, c.Query("teamid")) {
 			return c.SendStatus(Success)
 		}
 		return c.SendStatus(NotAcceptable)
@@ -233,172 +202,5 @@ func main() {
 	})
 
 	server.Listen(":3000")
-}
 
-func SignUpUser(db *mongo.Database, user *User) bool {
-	status := true
-	_, err := db.Collection("PersonalDetails").InsertOne(
-		context.TODO(), user,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func UnRegUser(db *mongo.Database, user *User) bool {
-	status := true
-	log.Println("Unregister User")
-	_, err := db.Collection("PersonalDetails").DeleteOne(
-		context.TODO(), &fiber.Map{
-			"email":    user.Email,
-			"password": user.Password,
-		},
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func UpdateUser(db *mongo.Database, user *User) bool {
-	status := true
-	_, err := db.Collection("PersonalDetails").UpdateOne(context.TODO(), bson.M{
-		"email": user.Email,
-	}, bson.M{"$set": user}, options.Update().SetUpsert(true))
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func FindUser(db *mongo.Database, user *User) bool {
-	status := true
-	resp, err := db.Collection("PersonalDetails").
-		Find(context.TODO(), bson.M{})
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	for resp.Next(context.TODO()) {
-		var userTemp User
-		err := resp.Decode(&userTemp)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if userTemp.Password == user.Password && user.Email == userTemp.Email {
-			status = true
-			return status
-		}
-	}
-	status = false
-	return status
-}
-
-func AddTeam(db *mongo.Database, team *Team) bool {
-	status := true
-	_, err := db.Collection("Teams").InsertOne(
-		context.TODO(), team,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func AddTeamMember(db *mongo.Database, teamMember *User, teamid string) bool {
-	status := true
-
-	// find the teaminformation extract the team members in array then add new member and then put it back
-	db.Collection("Teams").FindOne(context.TODO())
-
-	_, err := db.Collection("Teams").UpdateOne(context.TODO(),
-		bson.M{"teamid": teamid})
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func AddUsersGameInfo(db *mongo.Database, gameInformationOfUser *GameInformationOfUser) bool {
-	status := true
-	_, err := db.Collection("UsersGameInformation").InsertOne(
-		context.TODO(), gameInformationOfUser,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func AddGame(db *mongo.Database, gameInfo *Game) bool {
-	status := true
-	_, err := db.Collection("GameInformation").InsertOne(
-		context.TODO(), gameInfo,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func addTransaction(db *mongo.Database, transactionInfo *Transaction) bool {
-	status := true
-	_, err := db.Collection("TransactionInfo").InsertOne(
-		context.TODO(), transactionInfo,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
-}
-
-func addReference(db *mongo.Database, reference *Refer) bool {
-	status := true
-	_, err := db.Collection("ReferenceInfo").InsertOne(
-		context.TODO(), reference,
-	)
-	if err != nil {
-		log.Printf(err.Error())
-		status = false
-	} else {
-		log.Printf("Success")
-		status = true
-	}
-	return status
 }
