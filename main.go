@@ -23,8 +23,10 @@ const NotAcceptable = 406
 
 func main() {
 	fastergoding.Run()
+
 	var ServerOK = false
 	log.Print("> Starting the Haexr Servers...")
+
 	server := fiber.New()
 
 	c := make(chan os.Signal, 1)
@@ -38,7 +40,9 @@ func main() {
 	log.Print("> Server Loaded")
 
 	log.Print("> Connecting to Databases...")
+
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(connectionString))
+
 	if err != nil {
 		log.Print("> Connection Failed")
 	}

@@ -1,7 +1,7 @@
 package main
 
 type User struct {
-	User_uuid             string
+	User_uuid             string //haexr_id
 	Email                 string
 	Password              string
 	Fname                 string
