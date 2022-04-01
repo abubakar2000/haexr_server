@@ -95,8 +95,6 @@ func main() {
 
 	})
 
-	server.Static("/", "./public")
-
 	// User unregister API
 	server.Post("/unregister", func(c *fiber.Ctx) error {
 		userData := &User{}
@@ -191,6 +189,13 @@ func main() {
 		}
 		return c.SendStatus(NotAcceptable)
 	})
+	server.Get("/enlistgames", func(c *fiber.Ctx) error {
+		gameInfo := &Game{}
+		json.Unmarshal(c.Body(), gameInfo)
+		GamesList := GetGame(client.Database(currentDB))
+		return c.JSON(GamesList)
+
+	})
 
 	// Add Users Game
 	server.Post("/addtransaction", func(c *fiber.Ctx) error {
@@ -211,6 +216,7 @@ func main() {
 		return c.SendStatus(NotAcceptable)
 	})
 
+	server.Static("/", "./public")
 	server.Listen(":3000")
 
 }

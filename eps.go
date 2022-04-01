@@ -226,6 +226,26 @@ func AddGame(db *mongo.Database, gameInfo *Game) bool {
 	return status
 }
 
+func GetGame(db *mongo.Database) []Game {
+	GamesList := []Game{}
+	list, err := db.Collection("GameInformation").Find(
+		context.TODO(), bson.M{},
+	)
+	if err != nil {
+		log.Printf(err.Error())
+
+	} else {
+
+		for list.Next(context.TODO()) {
+			var game Game
+			list.Decode(&game)
+			GamesList = append(GamesList, game)
+		}
+
+	}
+	return GamesList
+}
+
 func addTransaction(db *mongo.Database, transactionInfo *Transaction) bool {
 	status := true
 	_, err := db.Collection("TransactionInfo").InsertOne(
