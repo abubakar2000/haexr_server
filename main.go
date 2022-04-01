@@ -69,6 +69,10 @@ func main() {
 		}
 		return c.SendString("System not OK ...")
 	})
+	server.Get("/test", func(c *fiber.Ctx) error {
+		log.Println("Tested")
+		return c.SendString("Test Successful")
+	})
 
 	// -----------------------------------------------------------------
 
@@ -91,6 +95,8 @@ func main() {
 
 	})
 
+	server.Static("/", "./public")
+
 	// User unregister API
 	server.Post("/unregister", func(c *fiber.Ctx) error {
 		userData := &User{}
@@ -104,13 +110,13 @@ func main() {
 	server.Post("/login", func(c *fiber.Ctx) error {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)
-		fmt.Println(userData.Email)
-		fmt.Println(userData.Password)
+
 		if FindUser(client.Database(currentDB), userData) {
 			// Token will be given
 			return c.SendStatus(Success)
+		} else {
+			return c.SendStatus(NotAcceptable)
 		}
-		return c.SendStatus(NotAcceptable)
 	})
 
 	server.Post("/logout", func(c *fiber.Ctx) error {

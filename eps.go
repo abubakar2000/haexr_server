@@ -87,6 +87,7 @@ func UpdateUser(db *mongo.Database, user *User) bool {
 }
 
 func FindUser(db *mongo.Database, user *User) bool {
+
 	status := true
 	resp, err := db.Collection("PersonalDetails").
 		Find(context.TODO(), bson.M{})
@@ -94,7 +95,6 @@ func FindUser(db *mongo.Database, user *User) bool {
 		log.Printf(err.Error())
 		status = false
 	} else {
-		log.Printf("Success")
 		status = true
 	}
 	for resp.Next(context.TODO()) {
