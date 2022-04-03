@@ -105,6 +105,13 @@ func main() {
 		return c.SendStatus(NotAcceptable)
 	})
 
+	server.Post("getuserinfo", func(c *fiber.Ctx) error {
+		userData := &User{}
+		json.Unmarshal(c.Body(), userData)
+		return c.JSON(GetUserDetails(client.Database(currentDB), userData.Email, userData.Password))
+
+	})
+
 	server.Post("/login", func(c *fiber.Ctx) error {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)

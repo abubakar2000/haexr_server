@@ -112,6 +112,13 @@ func FindUser(db *mongo.Database, user *User) bool {
 	return status
 }
 
+func GetUserDetails(db *mongo.Database, email string, password string) User {
+	resp := db.Collection("PersonalDetails").FindOne(context.TODO(), bson.M{"email": email, "password": password})
+	var userInformation User
+	resp.Decode(&userInformation)
+	return userInformation
+}
+
 func AddTeam(db *mongo.Database, team *Team) bool {
 	status := true
 	_, err := db.Collection("Teams").InsertOne(
