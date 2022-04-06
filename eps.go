@@ -141,9 +141,6 @@ func AddTeamMember(db *mongo.Database, teamMember *User, teamid string) bool {
 		var teamTemp Team
 		resp.Decode(&teamTemp)
 		teamTemp.UsersInTeam = append(teamTemp.UsersInTeam, teamMember.User_uuid)
-		log.Println("....")
-		log.Println(teamTemp.UsersInTeam)
-		log.Println("....")
 		_, err := db.Collection("Teams").UpdateOne(context.TODO(),
 			bson.M{"teamid": teamid}, bson.M{"$set": teamTemp})
 		if err != nil {
@@ -181,10 +178,6 @@ func DelTeamMember(db *mongo.Database, teamMember *User, teamid string) bool {
 		resp.Decode(&teamTemp)
 
 		teamTemp.UsersInTeam = splice(teamTemp.UsersInTeam, teamMember.User_uuid)
-
-		log.Println("....")
-		log.Println(teamTemp.UsersInTeam)
-		log.Println("....")
 		_, err := db.Collection("Teams").UpdateOne(context.TODO(),
 			bson.M{"teamid": teamid}, bson.M{"$set": teamTemp})
 		if err != nil {
@@ -298,7 +291,32 @@ func CreateTeams(db *mongo.Database, newTeam Team) bool {
 	return status
 }
 
-func GetTeams(db *mongo.Database) []Team {
+func GetTeamByName(db *mongo.Database, teamName string) []string {
+	res := db.Collection("Teams").FindOne(
+		context.TODO(), bson.M{"teamname": teamName},
+	)
+	var team Team
+	res.Decode(&team)
+	return team.UsersInTeam
+}
+
+func GetTeamsByGameID(db *mongo.Database, gameid string) []Team {
+	var teams []Team
+	res, err := db.Collection("Teams").Find(
+		context.TODO(), bson.M{"gameid": gameid},
+	)
+	if err != nil {
+		return nil
+	}
+	for res.Next(context.TODO()) {
+		var team Team
+		res.Decode(&team)
+		teams = append(teams, team)
+	}
+	return teams
+}
+
+func GetTeamsWhole(db *mongo.Database) []Team {
 	TeamsList := []Team{}
 	list, err := db.Collection("Teams").Find(
 		context.TODO(), bson.M{},
@@ -312,21 +330,15 @@ func GetTeams(db *mongo.Database) []Team {
 			TeamsList = append(TeamsList, team)
 		}
 	}
-	println(len(TeamsList))
 	return TeamsList
 }
 
 func AddUserToTeam(db *mongo.Database, user string, team string) bool {
-	println(user)
-	println(team)
-	res, err := db.Collection("Teams").UpdateOne(context.TODO(),
+	_, err := db.Collection("Teams").UpdateOne(context.TODO(),
 		bson.M{"teamid": team}, bson.M{"$push": bson.M{"usersinteam": user}})
 	if err != nil {
 		return false
 	}
-	println(res.MatchedCount)
-	println(res.ModifiedCount)
-	println(res.UpsertedCount)
 	return true
 }
 func RemoveUserFromTeam(db *mongo.Database, user string, team string) bool {

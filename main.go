@@ -127,8 +127,6 @@ func main() {
 	server.Post("/logout", func(c *fiber.Ctx) error {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)
-		fmt.Println(userData.Email)
-		fmt.Println(userData.Password)
 		if FindUser(client.Database(currentDB), userData) {
 			// Token will be revoked
 			return c.SendStatus(Success)
@@ -139,8 +137,6 @@ func main() {
 	server.Post("/updateuser", func(c *fiber.Ctx) error {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)
-		fmt.Println(userData.Email)
-		fmt.Println(userData.Password)
 		if UpdateUser(client.Database(currentDB), userData) {
 			return c.SendStatus(Success)
 		}
@@ -231,9 +227,27 @@ func main() {
 		}
 		return c.SendStatus(NotAcceptable)
 	})
-	server.Get("/getteams", func(c *fiber.Ctx) error {
-		println(len(GetTeams(client.Database(currentDB))))
-		return c.JSON(GetTeams(client.Database(currentDB)))
+
+	server.Get("/getteams_whole", func(c *fiber.Ctx) error {
+		return c.JSON(GetTeamsWhole(client.Database(currentDB)))
+	})
+
+	server.Get("/getteam", func(c *fiber.Ctx) error {
+		type TeamNameHolder struct {
+			TeamName string
+		}
+		var teamname TeamNameHolder
+		json.Unmarshal(c.Body(), &teamname)
+		return c.JSON(GetTeamByName(client.Database(currentDB), teamname.TeamName))
+	})
+
+	server.Get("/getteambygameid", func(c *fiber.Ctx) error {
+		type GameIDHolder struct {
+			GameID string
+		}
+		var gameid GameIDHolder
+		json.Unmarshal(c.Body(), &gameid)
+		return c.JSON(GetTeamsByGameID(client.Database(currentDB), gameid.GameID))
 	})
 
 	server.Post("/addmembertoteam", func(c *fiber.Ctx) error {
@@ -243,8 +257,6 @@ func main() {
 		}
 		var userandteam UserAndTeam
 		json.Unmarshal(c.Body(), &userandteam)
-		println(userandteam.Team)
-		println(userandteam.User)
 		if AddUserToTeam(client.Database(currentDB), userandteam.User, userandteam.Team) {
 			return c.SendStatus(Success)
 		}
