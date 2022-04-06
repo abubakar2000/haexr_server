@@ -316,6 +316,10 @@ func GetTeams(db *mongo.Database) []Team {
 	return TeamsList
 }
 
-func AddUserToTeam(db *mongo.Database, user User, team Team) {
-
+func AddUserToTeam(db *mongo.Database, user string, team string) {
+	println("checkpoint 2")
+	println(user)
+	println(team)
+	db.Collection("Teams").UpdateOne(context.TODO(),
+		bson.M{"teamid": team}, bson.M{"$set": bson.M{"usersinteam.$": user}})
 }

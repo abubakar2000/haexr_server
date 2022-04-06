@@ -236,14 +236,14 @@ func main() {
 		return c.JSON(GetTeams(client.Database(currentDB)))
 	})
 
-	server.Post("/addMemberToTeam", func(c *fiber.Ctx) error {
+	server.Post("/addmembertoteam", func(c *fiber.Ctx) error {
 		type userAndTeam struct {
-			team Team
-			user User
+			team string
+			user string
 		}
 		var userandteam userAndTeam
 		json.Unmarshal(c.Body(), &userandteam)
-
+		println("checkpoint 1")
 		AddUserToTeam(client.Database(currentDB), userandteam.user, userandteam.team)
 		return c.SendString("haha")
 	})
