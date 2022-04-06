@@ -237,15 +237,31 @@ func main() {
 	})
 
 	server.Post("/addmembertoteam", func(c *fiber.Ctx) error {
-		type userAndTeam struct {
-			team string
-			user string
+		type UserAndTeam struct {
+			User string
+			Team string
 		}
-		var userandteam userAndTeam
+		var userandteam UserAndTeam
 		json.Unmarshal(c.Body(), &userandteam)
-		println("checkpoint 1")
-		AddUserToTeam(client.Database(currentDB), userandteam.user, userandteam.team)
-		return c.SendString("haha")
+		println(userandteam.Team)
+		println(userandteam.User)
+		if AddUserToTeam(client.Database(currentDB), userandteam.User, userandteam.Team) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+	server.Post("/removemembertoteam", func(c *fiber.Ctx) error {
+		type UserAndTeam struct {
+			User string
+			Team string
+		}
+		var userandteam UserAndTeam
+		json.Unmarshal(c.Body(), &userandteam)
+
+		if RemoveUserFromTeam(client.Database(currentDB), userandteam.User, userandteam.Team) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
 	})
 
 	server.Static("/", "./public")

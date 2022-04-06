@@ -316,10 +316,24 @@ func GetTeams(db *mongo.Database) []Team {
 	return TeamsList
 }
 
-func AddUserToTeam(db *mongo.Database, user string, team string) {
-	println("checkpoint 2")
+func AddUserToTeam(db *mongo.Database, user string, team string) bool {
 	println(user)
 	println(team)
-	db.Collection("Teams").UpdateOne(context.TODO(),
-		bson.M{"teamid": team}, bson.M{"$set": bson.M{"usersinteam.$": user}})
+	res, err := db.Collection("Teams").UpdateOne(context.TODO(),
+		bson.M{"teamid": team}, bson.M{"$push": bson.M{"usersinteam": user}})
+	if err != nil {
+		return false
+	}
+	println(res.MatchedCount)
+	println(res.ModifiedCount)
+	println(res.UpsertedCount)
+	return true
+}
+func RemoveUserFromTeam(db *mongo.Database, user string, team string) bool {
+	_, err := db.Collection("Teams").UpdateOne(context.TODO(),
+		bson.M{"teamid": team}, bson.M{"$pull": bson.M{"usersinteam": user}})
+	if err != nil {
+		return false
+	}
+	return true
 }
