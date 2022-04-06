@@ -223,6 +223,31 @@ func main() {
 		return c.SendStatus(NotAcceptable)
 	})
 
+	server.Post("/createteam", func(c *fiber.Ctx) error {
+		var tempData Team
+		json.Unmarshal(c.Body(), &tempData)
+		if CreateTeams(client.Database(currentDB), tempData) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+	server.Get("/getteams", func(c *fiber.Ctx) error {
+		println(len(GetTeams(client.Database(currentDB))))
+		return c.JSON(GetTeams(client.Database(currentDB)))
+	})
+
+	server.Post("/addMemberToTeam", func(c *fiber.Ctx) error {
+		type userAndTeam struct {
+			team Team
+			user User
+		}
+		var userandteam userAndTeam
+		json.Unmarshal(c.Body(), &userandteam)
+
+		AddUserToTeam(client.Database(currentDB), userandteam.user, userandteam.team)
+		return c.SendString("haha")
+	})
+
 	server.Static("/", "./public")
 	server.Listen(":3000")
 

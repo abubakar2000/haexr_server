@@ -282,3 +282,40 @@ func addReference(db *mongo.Database, reference *Refer) bool {
 	}
 	return status
 }
+
+func CreateTeams(db *mongo.Database, newTeam Team) bool {
+	status := true
+	_, err := db.Collection("Teams").InsertOne(
+		context.TODO(), newTeam,
+	)
+	if err != nil {
+		log.Printf(err.Error())
+		status = false
+	} else {
+		log.Printf("Success")
+		status = true
+	}
+	return status
+}
+
+func GetTeams(db *mongo.Database) []Team {
+	TeamsList := []Team{}
+	list, err := db.Collection("Teams").Find(
+		context.TODO(), bson.M{},
+	)
+	if err != nil {
+		log.Printf(err.Error())
+	} else {
+		for list.Next(context.TODO()) {
+			var team Team
+			list.Decode(&team)
+			TeamsList = append(TeamsList, team)
+		}
+	}
+	println(len(TeamsList))
+	return TeamsList
+}
+
+func AddUserToTeam(db *mongo.Database, user User, team Team) {
+
+}
