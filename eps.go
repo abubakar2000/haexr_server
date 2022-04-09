@@ -116,6 +116,7 @@ func GetUserDetails(db *mongo.Database, email string) User {
 	resp := db.Collection("PersonalDetails").FindOne(context.TODO(), bson.M{"email": email})
 	var userInformation User
 	resp.Decode(&userInformation)
+	userInformation.Password = ""
 	return userInformation
 }
 
