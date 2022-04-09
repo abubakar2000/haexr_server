@@ -1,0 +1,27 @@
+{
+    "Banner": "string",
+    "Title": "string",
+    "Sponsor": "string",
+    "Entrancefee": "string",
+    "RegistrationStartDate": "string",
+    "RegistrationLastDate": "string",
+    "TournamentStartDate": "string",
+    "TournamentEndDate": "string",
+    "TournamentsTeamType": "string",
+    "EligibleCountries": [
+        "Pakistan",
+        "Indian"
+    ],
+    "TotalTeams": 0,
+    "StreamLinks": [
+        {
+            "platform": "string",
+            "url": "string"
+        }
+    ],
+    "Winnings": "string",
+    "PointTable": "string",
+    "Tier": "string",
+    "Teams": [],
+    "Rounds": []
+}

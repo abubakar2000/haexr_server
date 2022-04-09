@@ -70,44 +70,49 @@ type Matches struct {
 	Results   []string
 }
 
+// ----
 type Tournaments struct {
-	Banner                []string
-	TournamentName        string
-	SponseredName         string
-	TeamType              string
+	Banner                string
+	Title                 string
+	Sponsor               string
+	Entrancefee           string
 	RegistrationStartDate string
 	RegistrationLastDate  string
 	TournamentStartDate   string
 	TournamentEndDate     string
-	EntryFees             string
-	TotalSlot             string
-	CountryEligible       []string
-	ScheduleStages        []string
-	PointTable            []string
-	Winnings              []string
+	TournamentsTeamType   string
+	EligibleCountries     []string
+	TotalTeams            int
+	StreamLinks           []StreamLink
+	Teams                 []Team //to be considered
+	Winnings              string
+	Rounds                []Rounds //the cards in it
+	PointTable            string
 	Tier                  string
-	StreamLink            []string
 }
 
-type Stages struct {
-	StartDate                string
-	EndDate                  string
-	IsLocked                 string
-	NoOfTeamsAvailable       string
-	NoOfTeamsPerGroup        string
-	DateAvailable            []string
-	TimeAvailable            []string
-	NoOfPassingTeams         string
-	NoOfRoundsPerGroup       string
-	MapName                  []string
-	TimeTakenByRoundPerMatch string
-	GroupSlot                string //It is type of map and we will show key (slot 3-n) in frontend on All teams page
+type StreamLink struct {
+	Platform string
+	Url      string
 }
 
-type Results struct {
-	// Tournament.Stage.Group.RoundNumber Id
-	ResultImg          []string //UserInput
-	ResultPosition     []string //UserInput
-	ResultKills        []string //UserInput
-	StreamerScreenshot []string //AdminInput
+// Qualifies -> semi final -> final thing //stages
+type Rounds struct {
+	date   []string
+	time   []string
+	Groups []Groups
+}
+
+type Groups struct {
+	GroupID        string
+	MatchID        string //BGMI MATCH #7768
+	Group          string
+	teams          []Team
+	rounds         []string // the rounds to be played in beetween the pool of teams coming froma action sheet from below
+	results        []string // will conatain the screenshots and some data
+	MapName        string
+	StartingAtTime string
+	StartingAtDate string
+	RoomID         string
+	Password       string
 }

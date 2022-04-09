@@ -341,6 +341,7 @@ func AddUserToTeam(db *mongo.Database, user string, team string) bool {
 	}
 	return true
 }
+
 func RemoveUserFromTeam(db *mongo.Database, user string, team string) bool {
 	_, err := db.Collection("Teams").UpdateOne(context.TODO(),
 		bson.M{"teamid": team}, bson.M{"$pull": bson.M{"usersinteam": user}})
@@ -348,4 +349,43 @@ func RemoveUserFromTeam(db *mongo.Database, user string, team string) bool {
 		return false
 	}
 	return true
+}
+
+func AddTournament(db *mongo.Database, tournament Tournaments) bool {
+	_, err := db.Collection("Tournaments").InsertOne(context.TODO(),
+		tournament)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func AddStreamingLinksToTournament(db *mongo.Database, tournament string, steamLink StreamLink) bool {
+	_, err := db.Collection("Tournaments").UpdateOne(
+		context.TODO(), bson.M{"title": tournament},
+		bson.M{"$push": bson.M{"streamlinks": steamLink}},
+	)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func AddTeamToTournament(db *mongo.Database, tournament string, team Team) bool {
+	_, err := db.Collection("Tournaments").UpdateOne(
+		context.TODO(), bson.M{"title": tournament},
+		bson.M{"$push": bson.M{"teams": team}},
+	)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func GetTournament(db *mongo.Database, tournament string) Tournaments {
+	res := db.Collection("Tournaments").FindOne(context.TODO(),
+		bson.M{"title": tournament})
+	var result Tournaments
+	res.Decode(&result)
+	return result
 }

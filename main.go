@@ -192,6 +192,7 @@ func main() {
 		}
 		return c.SendStatus(NotAcceptable)
 	})
+
 	server.Get("/enlistgames", func(c *fiber.Ctx) error {
 		gameInfo := &Game{}
 		json.Unmarshal(c.Body(), gameInfo)
@@ -262,6 +263,7 @@ func main() {
 		}
 		return c.SendStatus(NotAcceptable)
 	})
+
 	server.Post("/removemembertoteam", func(c *fiber.Ctx) error {
 		type UserAndTeam struct {
 			User string
@@ -274,6 +276,50 @@ func main() {
 			return c.SendStatus(Success)
 		}
 		return c.SendStatus(NotAcceptable)
+	})
+
+	server.Post("/addtournaments", func(c *fiber.Ctx) error {
+		var tournaments Tournaments
+		json.Unmarshal(c.Body(), &tournaments)
+		if AddTournament(client.Database(currentDB), tournaments) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+
+	server.Post("/addstreamlinkintournament", func(c *fiber.Ctx) error {
+		type StreamLinkAndTornament struct {
+			Tournament string
+			Link       StreamLink
+		}
+		var streamLinkAndTournament StreamLinkAndTornament
+		json.Unmarshal(c.Body(), &streamLinkAndTournament)
+		if AddStreamingLinksToTournament(client.Database(currentDB), streamLinkAndTournament.Tournament, streamLinkAndTournament.Link) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+
+	server.Post("/addteamintournament", func(c *fiber.Ctx) error {
+		type TeamAndTornament struct {
+			Tournament string
+			Team       Team
+		}
+		var teamAndTournament TeamAndTornament
+		json.Unmarshal(c.Body(), &teamAndTournament)
+		if AddTeamToTournament(client.Database(currentDB), teamAndTournament.Tournament, teamAndTournament.Team) {
+			return c.SendStatus(Success)
+		}
+		return c.SendStatus(NotAcceptable)
+	})
+
+	server.Post("/gettournaments", func(c *fiber.Ctx) error {
+		type ResBody struct {
+			Tournament string
+		}
+		var body ResBody
+		json.Unmarshal(c.Body(), &body)
+		return c.JSON(body)
 	})
 
 	server.Static("/", "./public")
