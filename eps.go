@@ -112,8 +112,8 @@ func FindUser(db *mongo.Database, user *User) bool {
 	return status
 }
 
-func GetUserDetails(db *mongo.Database, email string, password string) User {
-	resp := db.Collection("PersonalDetails").FindOne(context.TODO(), bson.M{"email": email, "password": password})
+func GetUserDetails(db *mongo.Database, email string) User {
+	resp := db.Collection("PersonalDetails").FindOne(context.TODO(), bson.M{"email": email})
 	var userInformation User
 	resp.Decode(&userInformation)
 	return userInformation

@@ -108,7 +108,7 @@ func main() {
 	server.Post("getuserinfo", func(c *fiber.Ctx) error {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)
-		return c.JSON(GetUserDetails(client.Database(currentDB), userData.Email, userData.Password))
+		return c.JSON(GetUserDetails(client.Database(currentDB), userData.Email))
 
 	})
 
