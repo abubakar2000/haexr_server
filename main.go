@@ -300,26 +300,35 @@ func main() {
 		return c.SendStatus(NotAcceptable)
 	})
 
-	server.Post("/addteamintournament", func(c *fiber.Ctx) error {
-		type TeamAndTornament struct {
+	// should add team to qualifier only
+	// server.Post("/addteamintournament", func(c *fiber.Ctx) error {
+	// 	type TeamAndTornament struct {
+	// 		Tournament string
+	// 		Team       Team
+	// 	}
+	// 	var teamAndTournament TeamAndTornament
+	// 	json.Unmarshal(c.Body(), &teamAndTournament)
+	// 	if AddTeamToTournament(client.Database(currentDB), teamAndTournament.Tournament, teamAndTournament.Team) {
+	// 		return c.SendStatus(Success)
+	// 	}
+	// 	return c.SendStatus(NotAcceptable)
+	// })
+
+	server.Get("/gettournaments", func(c *fiber.Ctx) error {
+		return c.JSON(GetTournaments(client.Database(currentDB)))
+	})
+
+	server.Post("/addqualifierroundintournament", func(c *fiber.Ctx) error {
+		type QualifierAndRounds struct {
 			Tournament string
-			Team       Team
+			Qualifier  Rounds
 		}
-		var teamAndTournament TeamAndTornament
-		json.Unmarshal(c.Body(), &teamAndTournament)
-		if AddTeamToTournament(client.Database(currentDB), teamAndTournament.Tournament, teamAndTournament.Team) {
+		qualifierAndRound := QualifierAndRounds{}
+		json.Unmarshal(c.Body(), &qualifierAndRound)
+		if AddQualifierRoundInTournament(client.Database(currentDB), qualifierAndRound.Tournament, qualifierAndRound.Qualifier) {
 			return c.SendStatus(Success)
 		}
 		return c.SendStatus(NotAcceptable)
-	})
-
-	server.Post("/gettournaments", func(c *fiber.Ctx) error {
-		type ResBody struct {
-			Tournament string
-		}
-		var body ResBody
-		json.Unmarshal(c.Body(), &body)
-		return c.JSON(body)
 	})
 
 	server.Static("/", "./public")

@@ -390,3 +390,32 @@ func GetTournament(db *mongo.Database, tournament string) Tournaments {
 	res.Decode(&result)
 	return result
 }
+
+func GetTournaments(db *mongo.Database) []Tournaments {
+	res, err := db.Collection("Tournaments").Find(context.TODO(),
+		bson.M{})
+	tournaments := []Tournaments{}
+	tempHolder := Tournaments{}
+	if err != nil {
+		return nil
+	}
+	for res.Next(context.TODO()) {
+		res.Decode(&tempHolder)
+		tournaments = append(tournaments, tempHolder)
+	}
+	return tournaments
+}
+
+func AddQualifierRoundInTournament(db *mongo.Database, tournament string, qualifier Rounds) bool {
+	res, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
+		bson.M{"title": tournament}, bson.M{"$push": bson.M{"rounds": qualifier}})
+	if err != nil {
+		return false
+	}
+
+	if res.ModifiedCount == 0 {
+		return false
+	}
+
+	return true
+}

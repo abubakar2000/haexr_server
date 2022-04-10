@@ -82,9 +82,9 @@ type Tournaments struct {
 	TournamentEndDate     string
 	TournamentsTeamType   string
 	EligibleCountries     []string
-	TotalTeams            int
+	TotalTeams            int // total number of teams that can join this tournament
 	StreamLinks           []StreamLink
-	Teams                 []Team //to be considered
+	Teams                 []Team //to be considered, also will be broken down into groups
 	Winnings              string
 	Rounds                []Rounds //the cards in it
 	PointTable            string
@@ -97,20 +97,25 @@ type StreamLink struct {
 }
 
 // Qualifies -> semi final -> final thing //stages
+// can be of 3 hours maybe for 3 group added by kundan himself
 type Rounds struct {
-	date   []string
-	time   []string
-	Groups []Groups
+	QualifierName                 string
+	Date                          []string //spans over Group StartingAtDate
+	Time                          []string //spans over Group StartingAtTime
+	Groups                        []Groups
+	NumOfQualifyingTeamsThisRound int //how many teams will be qualifying for this round
+	MapName                       string
+	IsLocked                      bool
+	NumberOfTeamsPerGroup         int
 }
 
 type Groups struct {
 	GroupID        string
 	MatchID        string //BGMI MATCH #7768
 	Group          string
-	teams          []Team
-	rounds         []string // the rounds to be played in beetween the pool of teams coming froma action sheet from below
-	results        []string // will conatain the screenshots and some data
-	MapName        string
+	Teams          []Team
+	Rounds         []string // the rounds to be played in beetween the pool of teams coming froma action sheet from below
+	Results        []string // will conatain the screenshots and some data
 	StartingAtTime string
 	StartingAtDate string
 	RoomID         string
