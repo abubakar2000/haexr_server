@@ -100,8 +100,8 @@ type StreamLink struct {
 // can be of 3 hours maybe for 3 group added by kundan himself
 type Rounds struct {
 	QualifierName                 string
-	Date                          []string //spans over Group StartingAtDate
-	Time                          []string //spans over Group StartingAtTime
+	Dates                         []string //spans over Group StartingAtDate
+	Times                         []string //spans over Group StartingAtTime
 	Groups                        []Groups
 	NumOfQualifyingTeamsThisRound int //how many teams will be qualifying for this round
 	MapName                       string

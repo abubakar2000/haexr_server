@@ -318,6 +318,15 @@ func main() {
 		return c.JSON(GetTournaments(client.Database(currentDB)))
 	})
 
+	server.Get("/gettournament", func(c *fiber.Ctx) error {
+		type TournamentBody struct {
+			Tournament string
+		}
+		tournament := TournamentBody{}
+		json.Unmarshal(c.Body(), &tournament)
+		return c.JSON(GetTournament(client.Database(currentDB), tournament.Tournament))
+	})
+
 	server.Post("/addqualifierroundintournament", func(c *fiber.Ctx) error {
 		type QualifierAndRounds struct {
 			Tournament string
