@@ -391,6 +391,19 @@ func GetTournament(db *mongo.Database, tournament string) Tournaments {
 	return result
 }
 
+func GetTournamentByGame(db *mongo.Database, gameid string) []Tournaments {
+	res, _ := db.Collection("Tournaments").Find(context.TODO(),
+		bson.M{"gameid": gameid})
+	println(gameid)
+	tournamentsOfGame := []Tournaments{}
+	for res.Next(context.TODO()) {
+		var result Tournaments
+		res.Decode(&result)
+		tournamentsOfGame = append(tournamentsOfGame, result)
+	}
+	return tournamentsOfGame
+}
+
 func GetTournaments(db *mongo.Database) []Tournaments {
 	res, err := db.Collection("Tournaments").Find(context.TODO(),
 		bson.M{})
