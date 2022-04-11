@@ -431,6 +431,11 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 	// once got and save now check does the date and time that user is demainding is available pele se ya nai
 	for i := 0; i < len(data.Rounds); i++ {
 		tempRound := data.Rounds[i]
+
+		if len(data.Rounds[i].Groups) > data.TotalTeams/data.Rounds[i].NumberOfTeamsPerGroup {
+			println("Limit reached cant create more groups")
+			return Tournaments{}
+		}
 		if tempRound.QualifierName == qualifier {
 			println("found")
 			// great job now that you have found the qualifier you needed lets search for the slot we're looking for so we can add the user in there
@@ -454,7 +459,8 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 				}
 				// here i add new group
 				res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
-					bson.M{"title": tournament, "rounds.qualifiername": qualifier}, bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
+					bson.M{"title": tournament, "rounds.qualifiername": qualifier},
+					bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
 
 				if err != nil {
 					return Tournaments{}
@@ -509,9 +515,7 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 							if res2.ModifiedCount == 0 {
 								return Tournaments{}
 							}
-
 						}
-
 					} else {
 						println("Group doesnt exist, making a new one")
 						// so add a new group for this team when no other group for the key is present
@@ -543,6 +547,21 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 				}
 			}
 		}
+
+		// GETTING THE INFORMATION
+		print("================================= Round ")
+		println(i)
+		resinfo := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+		var info Tournaments
+		resinfo.Decode(&info)
+		println("Tournament informations")
+		print("MAX teams ")
+		println(info.TotalTeams)
+		print("Total # groups currently formed for round are ")
+		println(len(info.Rounds[i].Groups))
+		print("MAX number of group ")
+		println(info.TotalTeams / info.Rounds[i].NumberOfTeamsPerGroup)
+		println("=================================")
 	}
 
 	// res, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
