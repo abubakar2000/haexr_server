@@ -114,10 +114,19 @@ type Groups struct {
 	MatchID        string //BGMI MATCH #7768
 	Group          string
 	Teams          []Team
-	Rounds         []string // the rounds to be played in beetween the pool of teams coming froma action sheet from below
+	Rounds         []Match  // the rounds to be played in between the pool of teams coming froma action sheet from below
 	Results        []string // will conatain the screenshots and some data
 	StartingAtTime string
+	Duration       string
 	StartingAtDate string
 	RoomID         string
 	Password       string
+}
+
+// match takes place in between the group
+type Match struct {
+	Title   string
+	Time    string
+	Date    string
+	MapName string
 }

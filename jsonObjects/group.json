@@ -1,0 +1,13 @@
+{
+    "GroupID"        :"string",
+	"MatchID"        :"string",
+	"Group"          :"string",
+	"Teams"          :[],
+	"Rounds"         :[], 
+	"Results"        :[], 
+	"StartingAtTime" :"13:00",
+	"Duration"       :"1",
+	"StartingAtDate" :"26/2/2022",
+	"RoomID"         :"string",
+	"Password"       :"string"
+}
