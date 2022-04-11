@@ -74,6 +74,7 @@ type Matches struct {
 type Tournaments struct {
 	Banner                string
 	Title                 string
+	GameID                string
 	Sponsor               string
 	Entrancefee           string
 	RegistrationStartDate string

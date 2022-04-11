@@ -423,74 +423,191 @@ func AddQualifierRoundInTournament(db *mongo.Database, tournament string, qualif
 func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier string, group Groups, team Team) Tournaments {
 	// key is concatenation of date and time
 
-	// get all the tournaments to see the dates and time
 	res1 := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
 	var data Tournaments
 	res1.Decode(&data)
 
-	// once got and save now check does the date and time that user is demainding is available pele se ya nai
 	for i := 0; i < len(data.Rounds); i++ {
-		tempRound := data.Rounds[i]
+		if data.Rounds[i].QualifierName == qualifier {
+			println("found ")
+			currentRound := data.Rounds[i]
+			// Qualifier of focus
+			// ---------------------------------------------------
+			// check if the slot that user wants exists or not
+			foundSameSlot := false
+			for j := 0; j < len(currentRound.Groups); j++ {
+				if currentRound.Groups[j].StartingAtDate == group.StartingAtDate &&
+					currentRound.Groups[j].StartingAtTime == group.StartingAtTime {
+					foundSameSlot = true
 
-		if len(data.Rounds[i].Groups) > data.TotalTeams/data.Rounds[i].NumberOfTeamsPerGroup {
-			println("Limit reached cant create more groups")
-			return Tournaments{}
-		}
-		if tempRound.QualifierName == qualifier {
-			println("found")
-			// great job now that you have found the qualifier you needed lets search for the slot we're looking for so we can add the user in there
-			// check of any group exist or not
-
-			// just in case if groups dont exist then for loop wont execute so I've to manually insert first time
-			if len(tempRound.Groups) == 0 {
-				println("array was empty adding the first entry")
-				newGroupWithTeam := Groups{
-					GroupID:        "some random id",
-					MatchID:        "BGMI #1212",
-					StartingAtTime: group.StartingAtTime,
-					StartingAtDate: group.StartingAtDate,
-					Group:          "Group Name",
-					Teams:          []Team{team},
-					Results:        []string{},
-					RoomID:         "",
-					Password:       "",
-					Duration:       "45",
-					Rounds:         []Match{},
-				}
-				// here i add new group
-				res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
-					bson.M{"title": tournament, "rounds.qualifiername": qualifier},
-					bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
-
-				if err != nil {
-					return Tournaments{}
-				}
-
-				if res2.ModifiedCount == 0 {
-					return Tournaments{}
-				}
-			} else {
-				for j := 0; j < len(tempRound.Groups); j++ {
-					if tempRound.Groups[j].StartingAtTime == group.StartingAtTime &&
-						tempRound.Groups[j].StartingAtDate == group.StartingAtDate {
-						println("Group with same date time found")
-						// see if there is capacity in this group or not
-						// if teams joined in group are more than number of teams allowed per that group
-						// TODO this check doesnt work
-						println("Currently we have ")
-						println(len(tempRound.Groups[j].Teams))
-						println("Total capacity is ")
-						println(tempRound.NumberOfTeamsPerGroup)
-						if tempRound.NumberOfTeamsPerGroup > len(tempRound.Groups[j].Teams) {
-							println("Still has some capacity, adding slot")
-							tempRound.Groups[j].Teams = append(tempRound.Groups[j].Teams, team)
-
+					// if exist then
+					if foundSameSlot {
+						// check if there is capacity
+						if len(data.Rounds[i].Groups[j].Teams) < data.Rounds[i].NumberOfTeamsPerGroup {
+							data.Rounds[i].Groups[j].Teams = append(data.Rounds[i].Groups[j].Teams, team)
+							// if has capacity then add in same slot
+							// write back to database
 							db.Collection("Tournaments").UpdateOne(context.TODO(),
-								bson.M{"rounds.qualifiername": tempRound.QualifierName}, bson.M{"$set": bson.M{"rounds.$.groups": tempRound.Groups}})
-
+								bson.M{"rounds.qualifiername": data.Rounds[i].QualifierName},
+								bson.M{"$set": bson.M{"rounds.$.groups": data.Rounds[i].Groups}})
+							return Tournaments{}
 						} else {
-							println("Doesnt have any capacity making a new slot")
+							println("CAPACITY / GROUP REACHED")
+							foundSameSlot = false
+							continue
+						}
+					}
+					break
+				}
+			}
+			if !foundSameSlot {
 
+				if len(data.Rounds[i].Groups) < data.TotalTeams/data.Rounds[i].NumberOfTeamsPerGroup {
+					newGroupWithTeam := Groups{
+						GroupID:        "some random id",
+						MatchID:        "BGMI #1212",
+						StartingAtTime: group.StartingAtTime,
+						StartingAtDate: group.StartingAtDate,
+						Group:          "Group Name",
+						Teams:          []Team{team},
+						Results:        []string{},
+						RoomID:         "",
+						Password:       "",
+						Duration:       "45",
+						Rounds:         []Match{},
+					}
+					// here i add new group
+					db.Collection("Tournaments").UpdateOne(context.TODO(),
+						bson.M{"title": tournament, "rounds.qualifiername": qualifier},
+						bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
+					foundSameSlot = false
+				} else {
+					println("No more teams")
+				}
+			}
+			// else make a new one provided slot can be made
+
+			return data
+		}
+	}
+
+	return Tournaments{}
+	/*
+		// get all the tournaments to see the dates and time
+		res1 := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+		var data Tournaments
+		res1.Decode(&data)
+
+		// once got and save now check does the date and time that user is demainding is available pele se ya nai
+		for i := 0; i < len(data.Rounds); i++ {
+			tempRound := data.Rounds[i]
+
+			res11 := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+			var data2 Tournaments
+			res11.Decode(&data2)
+			println("----")
+			println(len(data2.Rounds[i].Groups))
+			println(data2.TotalTeams / data2.Rounds[i].NumberOfTeamsPerGroup)
+			println("----")
+			if len(data2.Rounds[i].Groups)-2 >= data2.TotalTeams/data2.Rounds[i].NumberOfTeamsPerGroup {
+				println("Limit reached cant create more groups")
+				return Tournaments{}
+			}
+
+			if tempRound.QualifierName == qualifier {
+				// println("found")
+				// great job now that you have found the qualifier you needed lets search for the slot we're looking for so we can add the user in there
+				// check of any group exist or not
+
+				// just in case if groups dont exist then for loop wont execute so I've to manually insert first time
+				if len(tempRound.Groups) == 0 {
+
+					println("================")
+					println("array was empty adding the first entry")
+					println("================")
+					newGroupWithTeam := Groups{
+						GroupID:        "some random id",
+						MatchID:        "BGMI #1212",
+						StartingAtTime: group.StartingAtTime,
+						StartingAtDate: group.StartingAtDate,
+						Group:          "Group Name",
+						Teams:          []Team{team},
+						Results:        []string{},
+						RoomID:         "",
+						Password:       "",
+						Duration:       "45",
+						Rounds:         []Match{},
+					}
+					// here i add new group
+					res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
+						bson.M{"title": tournament, "rounds.qualifiername": qualifier},
+						bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
+
+					if err != nil {
+						return Tournaments{}
+					}
+
+					if res2.ModifiedCount == 0 {
+						return Tournaments{}
+					}
+					res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+					res1.Decode(&data)
+					return data
+				} else {
+					for j := 0; j < len(tempRound.Groups); j++ {
+						if tempRound.Groups[j].StartingAtTime == group.StartingAtTime &&
+							tempRound.Groups[j].StartingAtDate == group.StartingAtDate {
+							println("Group with same date time found")
+							// see if there is capacity in this group or not
+							// if teams joined in group are more than number of teams allowed per that group
+							// TODO this check doesnt work
+							println("Currently we have ")
+							println(len(tempRound.Groups[j].Teams))
+							if tempRound.NumberOfTeamsPerGroup > len(tempRound.Groups[j].Teams) {
+								println("Still has some capacity, adding slot")
+								tempRound.Groups[j].Teams = append(tempRound.Groups[j].Teams, team)
+
+								db.Collection("Tournaments").UpdateOne(context.TODO(),
+									bson.M{"rounds.qualifiername": tempRound.QualifierName}, bson.M{"$set": bson.M{"rounds.$.groups": tempRound.Groups}})
+
+								// adding a slot in the group
+								res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+								res1.Decode(&data)
+								return data
+							} else {
+								// println("Doesnt have any capacity making a new slot")
+
+								newGroupWithTeam := Groups{
+									GroupID:        "some random id",
+									MatchID:        "BGMI #1212",
+									StartingAtTime: group.StartingAtTime,
+									StartingAtDate: group.StartingAtDate,
+									Group:          "Group Name",
+									Teams:          []Team{team},
+									Results:        []string{},
+									RoomID:         "",
+									Password:       "",
+									Duration:       "45",
+									Rounds:         []Match{},
+								}
+								// here i add new group
+								res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
+									bson.M{"title": tournament, "rounds.qualifiername": qualifier}, bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
+								if err != nil {
+									return Tournaments{}
+								}
+
+								if res2.ModifiedCount == 0 {
+									return Tournaments{}
+								}
+								// return by adding new team
+								res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+								res1.Decode(&data)
+								return data
+							}
+						} else {
+							// println("Group doesnt exist, making a new one")
+							// so add a new group for this team when no other group for the key is present
 							newGroupWithTeam := Groups{
 								GroupID:        "some random id",
 								MatchID:        "BGMI #1212",
@@ -504,7 +621,7 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 								Duration:       "45",
 								Rounds:         []Match{},
 							}
-							// here i add new group
+							// here i add new group with team in it
 							res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
 								bson.M{"title": tournament, "rounds.qualifiername": qualifier}, bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
 
@@ -515,75 +632,41 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 							if res2.ModifiedCount == 0 {
 								return Tournaments{}
 							}
-						}
-					} else {
-						println("Group doesnt exist, making a new one")
-						// so add a new group for this team when no other group for the key is present
-						newGroupWithTeam := Groups{
-							GroupID:        "some random id",
-							MatchID:        "BGMI #1212",
-							StartingAtTime: group.StartingAtTime,
-							StartingAtDate: group.StartingAtDate,
-							Group:          "Group Name",
-							Teams:          []Team{team},
-							Results:        []string{},
-							RoomID:         "",
-							Password:       "",
-							Duration:       "45",
-							Rounds:         []Match{},
-						}
-						// here i add new group
-						res2, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
-							bson.M{"title": tournament, "rounds.qualifiername": qualifier}, bson.M{"$push": bson.M{"rounds.$.groups": newGroupWithTeam}})
-
-						if err != nil {
-							return Tournaments{}
-						}
-
-						if res2.ModifiedCount == 0 {
-							return Tournaments{}
+							// and return
+							res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+							res1.Decode(&data)
+							return data
 						}
 					}
 				}
 			}
+
+			// GETTING THE INFORMATION
+			print("================================= Round ")
+			println(i)
+			resinfo := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+			var info Tournaments
+			resinfo.Decode(&info)
+			println("Tournament informations")
+			print("MAX teams ")
+			println(info.TotalTeams)
+			print("Total # groups currently formed for round are ")
+			println(len(info.Rounds[i].Groups))
+			println("Total # teams formed/group are ")
+			for a := 0; a < len(info.Rounds[i].Groups); a++ {
+				print("Group ")
+				print(a)
+				print(" has ")
+				print(len(info.Rounds[i].Groups[a].Teams))
+				println(" team(s)")
+			}
+			print("MAX number of group ")
+			println(info.TotalTeams / info.Rounds[i].NumberOfTeamsPerGroup)
+			println("=================================")
 		}
 
-		// GETTING THE INFORMATION
-		print("================================= Round ")
-		println(i)
-		resinfo := db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
-		var info Tournaments
-		resinfo.Decode(&info)
-		println("Tournament informations")
-		print("MAX teams ")
-		println(info.TotalTeams)
-		print("Total # groups currently formed for round are ")
-		println(len(info.Rounds[i].Groups))
-		print("Total # teams formed/group are ")
-		for a := 0; a < len(info.Rounds[a].Groups); a++ {
-			print("Group ")
-			print(a)
-			print(" has ")
-			println(len(info.Rounds[i].Groups[a].Teams))
-		}
-		println(len(info.Rounds[i].Groups))
-		print("MAX number of group ")
-		println(info.TotalTeams / info.Rounds[i].NumberOfTeamsPerGroup)
-		println("=================================")
-	}
-
-	// res, err := db.Collection("Tournaments").UpdateOne(context.TODO(),
-	// 	bson.M{"title": tournament}, bson.M{"$push": bson.M{"rounds": qualifier}})
-	// if err != nil {
-	// 	return false
-	// }
-
-	// if res.ModifiedCount == 0 {
-	// 	return false
-	// }
-
-	res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
-	res1.Decode(&data)
-
-	return data
+		res1 = db.Collection("Tournaments").FindOne(context.TODO(), bson.M{"title": tournament, "rounds.qualifiername": qualifier})
+		res1.Decode(&data)
+		return data
+	*/
 }
