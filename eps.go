@@ -559,6 +559,14 @@ func AddTeamInTournamentGroup(db *mongo.Database, tournament string, qualifier s
 		println(info.TotalTeams)
 		print("Total # groups currently formed for round are ")
 		println(len(info.Rounds[i].Groups))
+		print("Total # teams formed/group are ")
+		for a := 0; a < len(info.Rounds[a].Groups); a++ {
+			print("Group ")
+			print(a)
+			print(" has ")
+			println(len(info.Rounds[i].Groups[a].Teams))
+		}
+		println(len(info.Rounds[i].Groups))
 		print("MAX number of group ")
 		println(info.TotalTeams / info.Rounds[i].NumberOfTeamsPerGroup)
 		println("=================================")
