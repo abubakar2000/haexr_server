@@ -1,26 +1,27 @@
 {
-    "Banner": "string",
-    "Title": "string",
-    "GameID" :"string",
-    "Sponsor": "string",
-    "Entrancefee": "string",
-    "RegistrationStartDate": "string",
-    "RegistrationLastDate": "string",
-    "TournamentStartDate": "string",
-    "TournamentEndDate": "string",
-    "TournamentsTeamType": "string",
+    "Banner": "warzone.png",
+    "Title": "WarZone",
+    "GameID": "warzone",
+    "Sponsor": "SolutionAve",
+    "Entrancefee": 300,
+    "RegistrationStartDate": "24/3/2022",
+    "RegistrationLastDate": "28/3/2022",
+    "TournamentStartDate": "29/3/2022",
+    "TournamentEndDate": "5/4/2022",
+    "TournamentsTeamType": "2-Player",
     "EligibleCountries": [
         "Pakistan",
-        "Indian"
+        "Indian",
+        "Banglasdesh"
     ],
-    "TotalTeams": 0,
+    "TotalTeams": 300,
     "StreamLinks": [
         {
             "platform": "string",
             "url": "string"
         }
     ],
-    "Winnings": "string",
+    "Winnings": "50000 Cash Prize",
     "PointTable": "string",
     "Tier": "string",
     "Teams": [],

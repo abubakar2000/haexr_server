@@ -35,6 +35,7 @@ type Game struct {
 	GameName     string
 	GameTeamType []string
 	GameLogo     string
+	GameCategory []string
 }
 
 // Composed in the user
@@ -76,7 +77,7 @@ type Tournaments struct {
 	Title                 string
 	GameID                string
 	Sponsor               string
-	Entrancefee           string
+	Entrancefee           int
 	RegistrationStartDate string
 	RegistrationLastDate  string
 	TournamentStartDate   string

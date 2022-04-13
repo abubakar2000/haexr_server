@@ -300,20 +300,6 @@ func main() {
 		return c.SendStatus(NotAcceptable)
 	})
 
-	// should add team to qualifier only
-	// server.Post("/addteamintournament", func(c *fiber.Ctx) error {
-	// 	type TeamAndTornament struct {
-	// 		Tournament string
-	// 		Team       Team
-	// 	}
-	// 	var teamAndTournament TeamAndTornament
-	// 	json.Unmarshal(c.Body(), &teamAndTournament)
-	// 	if AddTeamToTournament(client.Database(currentDB), teamAndTournament.Tournament, teamAndTournament.Team) {
-	// 		return c.SendStatus(Success)
-	// 	}
-	// 	return c.SendStatus(NotAcceptable)
-	// })
-
 	server.Get("/gettournaments", func(c *fiber.Ctx) error {
 		return c.JSON(GetTournaments(client.Database(currentDB)))
 	})
@@ -327,11 +313,13 @@ func main() {
 		return c.JSON(GetTournament(client.Database(currentDB), tournament.Tournament))
 	})
 
-	server.Get("/gettournamentbygame", func(c *fiber.Ctx) error {
+	server.Post("/gettournamentbygame", func(c *fiber.Ctx) error {
 		type TournamentBody struct {
 			GameID string
 		}
 		tournament := TournamentBody{}
+		println("ASKING FOR THE GAME")
+		println(tournament.GameID)
 		json.Unmarshal(c.Body(), &tournament)
 		return c.JSON(GetTournamentByGame(client.Database(currentDB), tournament.GameID))
 	})
