@@ -198,7 +198,12 @@ func main() {
 		json.Unmarshal(c.Body(), gameInfo)
 		GamesList := GetGame(client.Database(currentDB))
 		return c.JSON(GamesList)
-
+	})
+	server.Post("/getgameinfo", func(c *fiber.Ctx) error {
+		gameInfo := &Game{}
+		json.Unmarshal(c.Body(), gameInfo)
+		GamesList := GetGameInfo(client.Database(currentDB), gameInfo.GameID)
+		return c.JSON(GamesList)
 	})
 
 	// Add Users Game

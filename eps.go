@@ -247,6 +247,15 @@ func GetGame(db *mongo.Database) []Game {
 	return GamesList
 }
 
+func GetGameInfo(db *mongo.Database, gameid string) Game {
+	Game := Game{}
+	gameRaw := db.Collection("GameInformation").FindOne(
+		context.TODO(), bson.M{"gameid": gameid},
+	)
+	gameRaw.Decode(&Game)
+	return Game
+}
+
 func addTransaction(db *mongo.Database, transactionInfo *Transaction) bool {
 	status := true
 	_, err := db.Collection("TransactionInfo").InsertOne(
