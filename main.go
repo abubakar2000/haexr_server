@@ -323,8 +323,6 @@ func main() {
 			GameID string
 		}
 		tournament := TournamentBody{}
-		println("ASKING FOR THE GAME")
-		println(tournament.GameID)
 		json.Unmarshal(c.Body(), &tournament)
 		return c.JSON(GetTournamentByGame(client.Database(currentDB), tournament.GameID))
 	})
