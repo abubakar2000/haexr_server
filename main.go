@@ -45,15 +45,18 @@ func main() {
 
 	if err != nil {
 		log.Print("> Connection Failed")
+		println(err.Error())
 	}
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
 			log.Print("> Connection attempt failed, Disconnecting.")
+			println(err.Error())
 		}
 	}()
 
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		log.Print("> Cannot Ping")
+		println(err.Error())
 	} else {
 		ServerOK = true
 	}
