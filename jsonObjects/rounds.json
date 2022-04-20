@@ -15,8 +15,8 @@
     "Groups": [
 
     ],
-    "NumOfQualifyingTeamsThisRound": 10,
+    "NumOfQualifyingTeamsThisRound": 1,
     "MapName": "Lalazar",
-    "IsLocked": false,
-    "NumberOfTeamsPerGroup": 5
+    "IsLocked": true,
+    "NumberOfTeamsPerGroup": 2
 }

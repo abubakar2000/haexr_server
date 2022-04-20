@@ -120,11 +120,22 @@ func GetUserDetails(db *mongo.Database, email string) User {
 	return userInformation
 }
 
+func GetUserDetailsUUID(db *mongo.Database, uuid string) User {
+	resp := db.Collection("PersonalDetails").FindOne(context.TODO(), bson.M{"user_uuid": uuid})
+	var userInformation User
+	resp.Decode(&userInformation)
+	userInformation.Password = ""
+	return userInformation
+}
+
 func AddTeam(db *mongo.Database, team *Team) bool {
 	status := true
 	_, err := db.Collection("Teams").InsertOne(
 		context.TODO(), team,
 	)
+	for i := 0; i < len(team.UsersInTeam); i++ {
+		println(team.UsersInTeam[i].User_uuid)
+	}
 	if err != nil {
 		log.Printf(err.Error())
 		status = false
@@ -135,13 +146,14 @@ func AddTeam(db *mongo.Database, team *Team) bool {
 	return status
 }
 
-func AddTeamMember(db *mongo.Database, teamMember *User, teamid string) bool {
+func AddTeamMember(db *mongo.Database, teamMember User, teamid string) bool {
 	status := true
 	resp, err := db.Collection("Teams").Find(context.TODO(), bson.M{"teamid": teamid})
 	for resp.Next(context.TODO()) {
 		var teamTemp Team
 		resp.Decode(&teamTemp)
-		teamTemp.UsersInTeam = append(teamTemp.UsersInTeam, teamMember.User_uuid)
+		// teamTemp.UsersInTeam = append(teamTemp.UsersInTeam, teamMember)
+		teamTemp.UsersInTeam = append(teamTemp.UsersInTeam, teamMember)
 		_, err := db.Collection("Teams").UpdateOne(context.TODO(),
 			bson.M{"teamid": teamid}, bson.M{"$set": teamTemp})
 		if err != nil {
@@ -160,10 +172,10 @@ func AddTeamMember(db *mongo.Database, teamMember *User, teamid string) bool {
 	return status
 }
 
-func splice(array []string, nameToRem string) []string {
+func splice(array []User, nameToRem string) []User {
 	index := 0
 	for i := 0; i < len(array); i++ {
-		if nameToRem == array[i] {
+		if nameToRem == array[i].User_uuid {
 			index = i
 			break
 		}
@@ -301,7 +313,7 @@ func CreateTeams(db *mongo.Database, newTeam Team) bool {
 	return status
 }
 
-func GetTeamByName(db *mongo.Database, teamName string) []string {
+func GetTeamByName(db *mongo.Database, teamName string) []User {
 	res := db.Collection("Teams").FindOne(
 		context.TODO(), bson.M{"teamname": teamName},
 	)

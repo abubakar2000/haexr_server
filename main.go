@@ -112,7 +112,12 @@ func main() {
 		userData := &User{}
 		json.Unmarshal(c.Body(), userData)
 		return c.JSON(GetUserDetails(client.Database(currentDB), userData.Email))
+	})
 
+	server.Post("getuserinfouuid", func(c *fiber.Ctx) error {
+		userData := &User{}
+		json.Unmarshal(c.Body(), userData)
+		return c.JSON(GetUserDetailsUUID(client.Database(currentDB), userData.User_uuid))
 	})
 
 	server.Post("/login", func(c *fiber.Ctx) error {
@@ -160,7 +165,7 @@ func main() {
 	server.Post("/addteammember", func(c *fiber.Ctx) error {
 		newMemberData := &User{}
 		json.Unmarshal(c.Body(), newMemberData)
-		if AddTeamMember(client.Database(currentDB), newMemberData, c.Query("teamid")) {
+		if AddTeamMember(client.Database(currentDB), *newMemberData, c.Query("teamid")) {
 			return c.SendStatus(Success)
 		}
 		return c.SendStatus(NotAcceptable)
@@ -250,7 +255,7 @@ func main() {
 		return c.JSON(GetTeamByName(client.Database(currentDB), teamname.TeamName))
 	})
 
-	server.Get("/getteambygameid", func(c *fiber.Ctx) error {
+	server.Post("/getteambygameid", func(c *fiber.Ctx) error {
 		type GameIDHolder struct {
 			GameID string
 		}

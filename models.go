@@ -18,8 +18,9 @@ type User struct {
 type Team struct {
 	TeamID      string
 	TeamName    string
+	TeamType    string
 	GameID      string
-	UsersInTeam []string
+	UsersInTeam []User
 }
 
 type GameInformationOfUser struct {
